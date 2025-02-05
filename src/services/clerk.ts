@@ -4,9 +4,9 @@ import { Role } from "@prisma/client";
 const client = clerkClient();
 
 export async function getCurrentUser() {
-  const { usrId, sessionClaims, redirectToSignIn } = await auth();
+  const { userId, sessionClaims, redirectToSignIn } = await auth();
   return {
-    clerkUserId: usrId,
+    clerkUserId: userId,
     userId: sessionClaims?.dbId,
     role: sessionClaims?.role,
     redirectToSignIn,
