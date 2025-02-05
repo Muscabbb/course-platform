@@ -1,7 +1,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { Role } from "@prisma/client";
 
-const client = clerkClient();
+const client = await clerkClient();
 
 export async function getCurrentUser() {
   const { userId, sessionClaims, redirectToSignIn } = await auth();
@@ -13,12 +13,15 @@ export async function getCurrentUser() {
   };
 }
 
-export async function syncClerkUserMeteData(user: {
+export function syncClerkUserMetadata(user: {
   id: string;
   clerkUserId: string;
   role: Role;
 }) {
-  return (await client).users.updateUserMetadata(user.clerkUserId, {
-    publicMetadata: { dbId: user.id, role: user.role },
+  return client.users.updateUserMetadata(user.clerkUserId, {
+    publicMetadata: {
+      dbId: user.id,
+      role: user.role,
+    },
   });
 }

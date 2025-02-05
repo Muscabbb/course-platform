@@ -2,7 +2,7 @@ import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
-import { syncClerkUserMeteData } from "@/services/clerk";
+import { syncClerkUserMetadata } from "@/services/clerk";
 import { DeleteUser } from "@/features/users/db/users";
 
 const prisma = new PrismaClient();
@@ -70,7 +70,7 @@ export async function POST(req: Request) {
             clerkUserId: evt.data.id,
           },
         });
-        await syncClerkUserMeteData(user);
+        await syncClerkUserMetadata(user);
       } else {
         await prisma.user.update({
           where: { clerkUserId: evt.data.id },
