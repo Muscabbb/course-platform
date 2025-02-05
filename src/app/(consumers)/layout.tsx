@@ -1,4 +1,6 @@
 import { Button } from "@/components/ui/button";
+import { canAccessAdminPage } from "@/permissions/general";
+import { getCurrentUser } from "@/services/clerk";
 import {
   SignedIn,
   SignedOut,
@@ -6,6 +8,7 @@ import {
   SignUpButton,
   UserButton,
 } from "@clerk/nextjs";
+import { Role } from "@prisma/client";
 import Link from "next/link";
 import React from "react";
 
@@ -20,7 +23,7 @@ export default function ConsumersLayout({
   );
 }
 
-const NavBar = () => {
+const NavBar = async () => {
   return (
     <header className="flex h-12 shadow bg-background z-10">
       <nav className="flex container gap-4 items-center">
@@ -29,7 +32,7 @@ const NavBar = () => {
         </Link>
         <div className="flex gap-4 justify-between items-center">
           <SignedIn>
-            <Link href="/admin">Admin</Link>
+            <AdmanLink />
             <Link href="/courses">My Courses</Link>
             <Link href="/purchases">Purchase History</Link>
             <div className="size-8 self-center">
@@ -65,4 +68,14 @@ const NavBar = () => {
       </nav>
     </header>
   );
+};
+
+const AdmanLink = async () => {
+  const user = await getCurrentUser();
+
+  if (!canAccessAdminPage(user.role as Role)) {
+    return null;
+  }
+
+  return <Link href="/admin">Admin</Link>;
 };
