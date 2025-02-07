@@ -1,11 +1,9 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
-import { PrismaClient } from "@prisma/client";
 import { syncClerkUserMetadata } from "@/services/clerk";
 import { DeleteUser } from "@/features/users/db/users";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/prisma";
 
 export async function POST(req: Request) {
   const SIGNING_SECRET = process.env.CLERK_WEBHOOK_SECRET;
@@ -58,9 +56,11 @@ export async function POST(req: Request) {
       const email = evt.data.email_addresses.find(
         (email) => email.id === evt.data.primary_email_address_id
       )?.email_address as string;
-      const name = `${evt.data.last_name} ${evt.data.last_name}`.trim();
-      if (email == null) new Response("Error: No email found", { status: 400 });
-      if (name == "") new Response("Error: No name found", { status: 400 });
+      const name = `${evt.data.first_name} ${evt.data.last_name}`.trim();
+      if (email == null)
+        return new Response("Error: No email found", { status: 400 });
+      if (name == "")
+        return new Response("Error: No name found", { status: 400 });
       if (evt.type === "user.created") {
         const user = await prisma.user.create({
           data: {
