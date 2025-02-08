@@ -71,7 +71,8 @@ const NavBar = async () => {
 };
 
 const AdmanLink = async () => {
-  const user = await getCurrentUser();
+  const user = await getCurrentUser({ allData: true });
+  console.log(user.data);
 
   if (!canAccessAdminPage(user.role as Role)) {
     return null;

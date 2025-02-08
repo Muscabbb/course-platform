@@ -1,6 +1,6 @@
-import { Prisma, PrismaClient } from "@prisma/client";
-
-const prisma = new PrismaClient();
+import { Prisma } from "@prisma/client";
+import { revalidateUserCache } from "./cache";
+import { prisma } from "@/lib/prisma";
 
 export async function InsertUser(userData: Prisma.UserCreateInput) {
   const user = await prisma.user.findFirst({
@@ -16,9 +16,12 @@ export async function InsertUser(userData: Prisma.UserCreateInput) {
       data: userData,
     });
   }
-  return await prisma.user.create({
+
+  const newUser = await prisma.user.create({
     data: userData,
   });
+  revalidateUserCache(newUser.id);
+  return newUser;
 }
 
 export async function GetUser(clerkUserId: string) {
@@ -33,7 +36,7 @@ export async function GetUsers() {
   return await prisma.user.findMany();
 }
 
-export async function UpdateUser(
+export async function updateUser(
   clerkUserId: string,
   userData: Prisma.UserUpdateInput
 ) {
@@ -48,12 +51,14 @@ export async function UpdateUser(
       data: userData as Prisma.UserCreateInput,
     });
   }
-  return await prisma.user.update({
+  const updatedUser = await prisma.user.update({
     where: {
       clerkUserId,
     },
     data: userData,
   });
+  revalidateUserCache(updatedUser.id);
+  return updatedUser;
 }
 
 export async function DeleteUser(clerkUserId: string) {
@@ -71,6 +76,6 @@ export async function DeleteUser(clerkUserId: string) {
   });
 
   if (deletedUser == null) throw new Error("failed to delete user");
-
+  revalidateUserCache(deletedUser.id);
   return deletedUser;
 }

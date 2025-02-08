@@ -1,12 +1,13 @@
 import { Webhook } from "svix";
 import { headers } from "next/headers";
 import { WebhookEvent } from "@clerk/nextjs/server";
+import { DeleteUser, InsertUser, updateUser } from "@/features/users/db/users";
 import { syncClerkUserMetadata } from "@/services/clerk";
-import { DeleteUser } from "@/features/users/db/users";
-import { prisma } from "@/lib/prisma";
+import { revalidateUserCache } from "@/features/users/db/cache";
 
 export async function POST(req: Request) {
   const SIGNING_SECRET = process.env.CLERK_WEBHOOK_SECRET;
+  console.log(SIGNING_SECRET);
 
   if (!SIGNING_SECRET) {
     throw new Error(
@@ -57,31 +58,25 @@ export async function POST(req: Request) {
         (email) => email.id === evt.data.primary_email_address_id
       )?.email_address as string;
       const name = `${evt.data.first_name} ${evt.data.last_name}`.trim();
+      const data = {
+        email,
+        name,
+        imageUrl: evt.data.image_url,
+        clerkUserId: evt.data.id,
+      };
       if (email == null)
         return new Response("Error: No email found", { status: 400 });
       if (name == "")
         return new Response("Error: No name found", { status: 400 });
       if (evt.type === "user.created") {
-        const user = await prisma.user.create({
-          data: {
-            email: email,
-            name: name,
-            imageUrl: evt.data.image_url,
-            clerkUserId: evt.data.id,
-          },
-        });
+        const user = await InsertUser(data);
+        revalidateUserCache(user.id);
         await syncClerkUserMetadata(user);
       } else {
-        await prisma.user.update({
-          where: { clerkUserId: evt.data.id },
-          data: {
-            email: email,
-            name: name,
-            imageUrl: evt.data.image_url,
-            role: evt.data.public_metadata.role as "admin" | "user",
-          },
-        });
+        const user = await updateUser(data.clerkUserId, data);
+        revalidateUserCache(user.id);
       }
+
       break;
     case "user.deleted":
       if (evt.data.id != null) {
@@ -90,5 +85,5 @@ export async function POST(req: Request) {
       break;
   }
 
-  return new Response("", { status: 200 });
+  return new Response("Webhook received", { status: 200 });
 }
