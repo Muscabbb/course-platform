@@ -27,7 +27,7 @@ const NavBar = async () => {
   return (
     <header className="flex h-12 shadow bg-background z-10">
       <nav className="flex container gap-4 items-center">
-        <Link href={"/"} className="mr-auto text-lg px-4">
+        <Link href={"/"} className="mr-auto text-lg">
           Courser
         </Link>
         <div className="flex gap-4 justify-between items-center">
@@ -71,8 +71,7 @@ const NavBar = async () => {
 };
 
 const AdmanLink = async () => {
-  const user = await getCurrentUser({ allData: true });
-  console.log(user.data);
+  const user = await getCurrentUser();
 
   if (!canAccessAdminPage(user.role as Role)) {
     return null;
