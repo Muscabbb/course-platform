@@ -9,15 +9,20 @@ import { FormFieldType } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { DessertIcon, LeafIcon, Loader } from "lucide-react";
-import { createCourse } from "../db/course";
+import { updateCourse } from "../db/course";
+import { type Course } from "@prisma/client";
 
-export default function CourseForm() {
+type Props = {
+  course: Course;
+};
+
+export default function EditCourseForm({ course }: Props) {
   const [loading, setLoading] = useState(false);
   const form = useForm({
     resolver: zodResolver(courseSchema),
     defaultValues: {
-      name: "",
-      description: "",
+      name: course.name,
+      description: course.description,
     },
   });
 
@@ -27,7 +32,7 @@ export default function CourseForm() {
     console.log("Submitted");
 
     try {
-      await createCourse(data);
+      await updateCourse(course.id, data);
     } catch (error) {
       console.log(error);
     }
@@ -60,10 +65,10 @@ export default function CourseForm() {
           {loading ? (
             <div className="flex items-center gap-2">
               <Loader className="h-4 w-4" />
-              <span>Submitting...</span>
+              <span>Updating...</span>
             </div>
           ) : (
-            "Submit"
+            "Submit Updates"
           )}
         </Button>
       </form>
