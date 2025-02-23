@@ -53,9 +53,9 @@ export default function CourseForm() {
           icon={<DessertIcon />}
         />
         <Button
-          disabled={loading}
+          disabled={form.formState.isSubmitting}
           type="submit"
-          className="w-full disabled:bg-gray-600"
+          className="ml-auto disabled:bg-gray-600"
         >
           {loading ? (
             <div className="flex items-center gap-2">

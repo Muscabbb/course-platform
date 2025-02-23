@@ -21,12 +21,13 @@ import {
 import { Button } from "@/components/ui/button";
 import { Edit, Trash2, GraduationCap } from "lucide-react";
 import { formatDate } from "@/lib/utils";
-import { type Course } from "@prisma/client";
+
 import Link from "next/link";
 import { deleteCourse } from "../db/course";
+import { CourseWithRelations } from "@/types/course";
 
 interface CourseTableProps {
-  courses: Course[];
+  courses: CourseWithRelations[];
 }
 
 export function CoursesTable({ courses }: CourseTableProps) {
@@ -54,25 +55,28 @@ export function CoursesTable({ courses }: CourseTableProps) {
       <Table>
         <TableHeader>
           <TableRow className="bg-muted/50">
-            <TableHead className="w-[100px]">Course</TableHead>
-            <TableHead>Description</TableHead>
-            <TableHead className="w-[150px]">Created</TableHead>
-            <TableHead className="w-[150px]">Last Updated</TableHead>
-            <TableHead className="w-[100px] text-right">Actions</TableHead>
+            <TableHead>Course</TableHead>
+            <TableHead>students</TableHead>
+            <TableHead>Created</TableHead>
+            <TableHead>Last Updated</TableHead>
+            <TableHead>Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {courses.map((course) => (
             <TableRow key={course.id} className="hover:bg-muted/50">
-              <TableCell className="font-medium">
+              <TableCell className="flex flex-col gap-1">
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-4 w-4 text-muted-foreground" />
                   <span className="truncate">{course.name}</span>
                 </div>
+                <div className="text-muted-foreground">
+                  Section: {course.sections.length}
+                </div>
               </TableCell>
               <TableCell>
                 <p className="truncate text-sm text-muted-foreground">
-                  {course.description}
+                  {course.users.length}
                 </p>
               </TableCell>
               <TableCell>

@@ -5,7 +5,25 @@ import Link from "next/link";
 import React from "react";
 import { prisma } from "@/lib/prisma";
 export default async function CoursesPage() {
-  const courses = await prisma.course.findMany();
+  const courses = await prisma.course.findMany({
+    include: {
+      products: {
+        include: {
+          product: true,
+        },
+      },
+      sections: {
+        orderBy: {
+          order: "asc",
+        },
+      },
+      users: {
+        include: {
+          user: true,
+        },
+      },
+    },
+  });
   return (
     <div className="container my-6">
       <PageHeader title="courses">
