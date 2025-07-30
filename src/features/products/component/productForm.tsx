@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,16 +9,32 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import {
   DessertIcon,
-  DollarSign,
   LeafIcon,
   Loader,
   Upload,
+  DollarSignIcon,
 } from "lucide-react";
 import { createProduct } from "../db/product";
 import { productSchema } from "@/features/schemas/productSchema";
+// Remove the getCoursesName import as we'll use the API route instead
 
 export default function ProductForm() {
   const [loading, setLoading] = useState(false);
+  const [courses, setCourses] = useState([{ name: "" }]);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const response = await fetch("/api/courses");
+        const data = await response.json();
+        setCourses(data);
+      } catch (error) {
+        console.error("Failed to fetch courses:", error);
+      }
+    };
+    fetchCourses();
+  }, []);
+
   const form = useForm({
     resolver: zodResolver(productSchema),
     defaultValues: {
@@ -27,26 +43,31 @@ export default function ProductForm() {
       imageUrl: "",
       price: 0,
       status: "private" as "private" | "public",
+      courseId: "",
     },
   });
 
   const onSubmit = async (data: z.infer<typeof productSchema>) => {
-    setLoading(true);
+    // setLoading(true);
     await new Promise((resolve) => setTimeout(resolve, 2000));
-    console.log("Submitted");
+    console.log(data);
+    // console.log("Submitted");
 
-    try {
-      await createProduct(data);
-    } catch (error) {
-      console.log(error);
-    }
-    form.reset();
-    setLoading(false);
+    // try {
+    //   await createProduct(data);
+    // } catch (error) {
+    //   console.log(error);
+    // }
+    // form.reset();
+    // setLoading(false);
   };
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+      <form
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="grid gap-6 bg-slate-500 grid-cols-1 md:grid-cols-2 items-start"
+      >
         <CustomForm
           control={form.control}
           fieldType={FormFieldType.INPUT}
@@ -56,17 +77,17 @@ export default function ProductForm() {
         />
         <CustomForm
           control={form.control}
-          fieldType={FormFieldType.INPUT}
-          name="description"
-          label="Product Description"
-          icon={<DessertIcon />}
+          fieldType={FormFieldType.NUMBER}
+          name="price"
+          label="Product Price"
+          icon={<DollarSignIcon />}
         />
         <CustomForm
           control={form.control}
-          fieldType={FormFieldType.INPUT}
-          name="price"
-          label="Product Price"
-          icon={<DollarSign />}
+          fieldType={FormFieldType.SELECT}
+          name="courseId"
+          label="Select Course"
+          courseNames={courses}
         />
         <CustomForm
           control={form.control}
@@ -85,10 +106,17 @@ export default function ProductForm() {
             { label: "Public", value: "public" },
           ]}
         />
+        <CustomForm
+          control={form.control}
+          fieldType={FormFieldType.TEXTAREA}
+          name="description"
+          label="Product Description"
+          icon={<DessertIcon />}
+        />
         <Button
           disabled={form.formState.isSubmitting}
           type="submit"
-          className="ml-auto disabled:bg-gray-600"
+          className="disabled:bg-gray-600 my-3"
         >
           {loading ? (
             <div className="flex items-center gap-2">

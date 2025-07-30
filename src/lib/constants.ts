@@ -1,6 +1,7 @@
 export enum FormFieldType {
   INPUT = "input",
   RADIO = "radio",
+  NUMBER = "number",
   FILE = "file",
   CHECKBOX = "checkbox",
   TEXTAREA = "textarea",

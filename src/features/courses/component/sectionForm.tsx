@@ -2,7 +2,7 @@
 import React, { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { courseSchema } from "@/features/schemas/courseSchema";
+import { sectionSchema } from "@/features/schemas/sectionSchema";
 import { z } from "zod";
 import CustomForm from "@/components/cusntomForm";
 import { FormFieldType } from "@/lib/constants";
@@ -10,41 +10,42 @@ import { Button } from "@/components/ui/button";
 import { Form } from "@/components/ui/form";
 import { toast } from "sonner";
 import { DessertIcon, LeafIcon, Loader } from "lucide-react";
-import { createCourse } from "../db/course";
+import { createSection } from "../db/sections";
+import { useRouter } from "next/navigation";
 
-export default function CourseForm() {
+type Props = {
+  courseId: string;
+};
+
+export default function SectionForm({ courseId }: Props) {
   const [loading, setLoading] = useState(false);
-  const form = useForm({
-    resolver: zodResolver(courseSchema),
+  const router = useRouter();
+
+  const form = useForm<z.infer<typeof sectionSchema>>({
+    resolver: zodResolver(sectionSchema),
     defaultValues: {
       name: "",
-      description: "",
+      order: 0,
+      status: "private",
+      courseId,
     },
   });
 
-  const onSubmit = async (data: z.infer<typeof courseSchema>) => {
+  const onSubmit = async (values: z.infer<typeof sectionSchema>) => {
     setLoading(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
-    console.log("Submitted");
-
     try {
-      console.log(data);
-
-      //
-      await createCourse(data);
+      const result = await createSection(values);
+      if (result.error) {
+        toast.error(result.message);
+      } else {
+        toast.success("Section created successfully!");
+        router.push(`/admin/courses/${courseId}`);
+      }
     } catch (error) {
-      console.log(error);
+      toast.error("Something went wrong!");
+    } finally {
+      setLoading(false);
     }
-    form.reset();
-    setLoading(false);
-    toast(`Successfully created the course`, {
-      icon: "🎉",
-      style: {
-        borderRadius: "10px",
-        background: "#3bf72a",
-        color: "#fff",
-      },
-    });
   };
 
   return (
@@ -54,15 +55,25 @@ export default function CourseForm() {
           control={form.control}
           fieldType={FormFieldType.INPUT}
           name="name"
-          label="Course Name"
+          label="Section Name"
           icon={<LeafIcon />}
         />
         <CustomForm
           control={form.control}
           fieldType={FormFieldType.INPUT}
-          name="description"
-          label="Course Description"
+          name="order"
+          label="Order"
           icon={<DessertIcon />}
+        />
+        <CustomForm
+          control={form.control}
+          fieldType={FormFieldType.SELECT}
+          name="status"
+          label="Status"
+          options={[
+            { label: "Private", value: "private" },
+            { label: "Public", value: "public" },
+          ]}
         />
         <Button
           disabled={form.formState.isSubmitting}
@@ -75,7 +86,7 @@ export default function CourseForm() {
               <span>Submitting...</span>
             </div>
           ) : (
-            "Submit"
+            "Create Section"
           )}
         </Button>
       </form>

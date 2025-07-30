@@ -25,6 +25,7 @@ import { formatDate } from "@/lib/utils";
 import Link from "next/link";
 import { deleteCourse } from "../db/course";
 import { CourseWithRelations } from "@/types/course";
+import { toast } from "sonner";
 
 interface CourseTableProps {
   courses: CourseWithRelations[];
@@ -47,6 +48,14 @@ export function CoursesTable({ courses }: CourseTableProps) {
   }
 
   async function handleDeleteCourse(id: string) {
+    toast("Course has been successfully deleted", {
+      icon: "🗑️",
+      style: {
+        borderRadius: "10px",
+        background: "#34f734",
+        color: "#fff",
+      },
+    });
     await deleteCourse(id);
   }
 
